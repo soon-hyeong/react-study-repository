@@ -31,6 +31,7 @@ api.interceptors.request.use(
 		if (token) {
 			config.headers.Authorization = `Bearer ${token}`;
 		}
+		return config; // config 객체를 전달
 	},
 	(error) => {
 		return Promise.reject(error);

@@ -44,11 +44,11 @@ const PostListPage = () => {
 				<h2>게시글 목록</h2>
 			</div>
 
-			{/* PostList 컴포넌트 사용 - 기본은 table 뷰 */}
-			{/* 
-       //////////////////////////////////////////////////////////////////////
-      
+			{/* components/board/PostList.jsx 컴포넌트 사용 - 기본은 table 뷰
+        props로 posts라는 게시물 리스트 배열을 전달
+        viewType은 table로 보여준다 (card, list item 스타일이 제공)
       */}
+			<PostList posts={posts} viewType="table" emptyMessage="아직 작성된 게시글이 없습니다." />
 		</div>
 	);
 };
