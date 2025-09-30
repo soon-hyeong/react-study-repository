@@ -8,84 +8,101 @@ import LoadingSpinner from "../../components/common/LoadingSpinner";
 import ErrorAlert from "../../components/common/ErrorAlert";
 
 const PostDetailPage = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
+	const { id } = useParams();
+	const navigate = useNavigate();
 
-  // 상태 관리
-  const [post, setPost] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+	// 상태 관리
+	const [post, setPost] = useState(null);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState("");
 
-  // 컴포넌트 마운트 시 게시글 조회
-  ////////////////////////////////
-  
+	// 컴포넌트 마운트 시 게시글 조회 and 게시물 번호가 업데이트시 실행 (리렌더링)
+	useEffect(() => {
+		//게시물 조회 함수
+		const fetchPost = async () => {
+			try {
+				setLoading(true);
+				setError("");
+				//API Server에서 게시글을 조회한다 (인증이 필요하므로 jwt token을 request header에 저장해 함께 전송 -> axios interceptor가 대행)
+				const response = await api.get(`api/posts/${id}`);
+				if (response.data.success) {
+					setPost(response.data.data);
+				}
+			} catch (error) {
+				console.error("게시글조회 실패:", error);
+				//ApiResponseDto의 에러 메세지 활용
+				const errorMesssage = error.response?.data?.message || "게시글 조회에 실패했습니다 다시 시도해주세요";
+				setError(errorMesssage);
+			} finally {
+				setLoading(false);
+			}
+		};
+		fetchPost();
+	}, []); //의존성 배열 정보가 변경될 때 리렌더링 (즉 게시물 번호가 변경되면 상세 게시물 정보를 업데이트)
 
-  // 로딩 중일 때 - LoadingSpinner 컴포넌트 사용
-  if (loading) {
-    return <LoadingSpinner message="게시글을 불러오는 중..." />;
-  }
+	// 로딩 중일 때 - LoadingSpinner 컴포넌트 사용
+	if (loading) {
+		return <LoadingSpinner message="게시글을 불러오는 중..." />;
+	}
 
-  // 에러 발생 시 - ErrorAlert 컴포넌트 사용
-  if (error) {
-    return (
-      <div className="mt-3">
-        <ErrorAlert
-          message={error}
-          variant="danger"
-          onRetry={fetchPost} // 재시도 함수 연결
-          onGoBack={() => navigate("/posts")} // 목록으로 돌아가기
-        />
-      </div>
-    );
-  }
+	// 에러 발생 시 - ErrorAlert 컴포넌트 사용
+	if (error) {
+		return (
+			<div className="mt-3">
+				<ErrorAlert
+					message={error}
+					variant="danger"
+					onRetry={fetchPost} // 재시도 함수 연결
+					onGoBack={() => navigate("/posts")} // 목록으로 돌아가기
+				/>
+			</div>
+		);
+	}
 
-  // 게시글이 없을 때 - ErrorAlert 컴포넌트 사용
-  if (!post) {
-    return (
-      <div className="mt-3">
-        <ErrorAlert
-          message="게시글을 찾을 수 없습니다."
-          variant="warning"
-          onGoBack={() => navigate("/posts")} // 목록으로만 제공
-        />
-      </div>
-    );
-  }
+	// 게시글이 없을 때 - ErrorAlert 컴포넌트 사용
+	if (!post) {
+		return (
+			<div className="mt-3">
+				<ErrorAlert
+					message="게시글을 찾을 수 없습니다."
+					variant="warning"
+					onGoBack={() => navigate("/posts")} // 목록으로만 제공
+				/>
+			</div>
+		);
+	}
 
-  return (
-    <div className="row justify-content-center">
-      <div className="col-md-8">
-        <Card>
-          {/* 게시글 헤더 - 제목과 작성 정보 */}
-          <Card.Header>
-            <h3>{post.title}</h3>
-            <div className="text-muted">
-              <small>
-                작성자: {post.authorName} | 작성일:{" "}
-                {new Date(post.createdAt).toLocaleString()}
-              </small>
-            </div>
-          </Card.Header>
+	return (
+		<div className="row justify-content-center">
+			<div className="col-md-8">
+				<Card>
+					{/* 게시글 헤더 - 제목과 작성 정보 */}
+					<Card.Header>
+						<h3>{post.title}</h3>
+						<div className="text-muted">
+							<small>
+								작성자: {post.authorName} | 작성일: {new Date(post.createdAt).toLocaleString()}
+							</small>
+						</div>
+					</Card.Header>
 
-          {/* 게시글 본문 */}
-          <Card.Body>
-            <div style={{ whiteSpace: "pre-wrap", minHeight: "200px" }}>
-              {post.content}
-            </div>
-          </Card.Body>
+					{/* 게시글 본문 */}
+					<Card.Body>
+						<div style={{ whiteSpace: "pre-wrap", minHeight: "200px" }}>{post.content}</div>
+					</Card.Body>
 
-          {/* 하단 버튼 영역 */}
-          <Card.Footer>
-            <div className="d-flex justify-content-start">
-              <Button variant="secondary" onClick={() => navigate("/posts")}>
-                목록으로
-              </Button>
-            </div>
-          </Card.Footer>
-        </Card>
-      </div>
-    </div>
-  );
+					{/* 하단 버튼 영역 */}
+					<Card.Footer>
+						<div className="d-flex justify-content-start">
+							<Button variant="secondary" onClick={() => navigate("/posts")}>
+								목록으로
+							</Button>
+						</div>
+					</Card.Footer>
+				</Card>
+			</div>
+		</div>
+	);
 };
 
 export default PostDetailPage;
